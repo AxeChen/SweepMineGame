@@ -7,7 +7,6 @@ package com.mg.axe.sweepgame;
 public class SweepMineGame implements Game {
 
 
-
     @Override
     public void startGame() {
 

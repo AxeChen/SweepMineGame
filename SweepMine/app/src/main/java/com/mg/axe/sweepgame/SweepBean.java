@@ -27,6 +27,16 @@ public class SweepBean {
 
     public int value;
 
+    public TextView textView;
+
+    public TextView getTextView() {
+        return textView;
+    }
+
+    public void setTextView(TextView textView) {
+        this.textView = textView;
+    }
+
     public int getType() {
         return type;
     }
