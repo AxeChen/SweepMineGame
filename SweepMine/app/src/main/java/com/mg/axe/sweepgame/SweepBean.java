@@ -11,17 +11,17 @@ public class SweepBean {
     /**
      * 空的空格（周围没有地雷）
      */
-    private static final int TYPE_EMPTY = 0;
+    public static final int TYPE_EMPTY = 0;
 
     /**
      * 数字（周围可能有一个以上的雷）
      */
-    private static final int TYPE_NUMBER = 1;
+    public static final int TYPE_NUMBER = 1;
 
     /**
      * 有地雷
      */
-    private static final int TYPE_MINE = 2;
+    public static final int TYPE_MINE = 2;
 
     public int type;
 
