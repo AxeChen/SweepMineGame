@@ -27,14 +27,18 @@ public class SweepBean {
 
     public int value;
 
-    public TextView textView;
+    public boolean isOpen;
 
-    public TextView getTextView() {
-        return textView;
+    private ItemView itemView;
+
+
+
+    public ItemView getItemView() {
+        return itemView;
     }
 
-    public void setTextView(TextView textView) {
-        this.textView = textView;
+    public void setItemView(ItemView itemView) {
+        this.itemView = itemView;
     }
 
     public int getType() {
@@ -51,5 +55,13 @@ public class SweepBean {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    public boolean isOpen() {
+        return isOpen;
+    }
+
+    public void setOpen(boolean open) {
+        isOpen = open;
     }
 }

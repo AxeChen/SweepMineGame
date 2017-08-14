@@ -6,7 +6,6 @@
     tools:context="com.mg.axe.sweepgame.MainActivity">
 
     <com.mg.axe.sweepgame.SweepView
-        android:background="@color/colorPrimary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

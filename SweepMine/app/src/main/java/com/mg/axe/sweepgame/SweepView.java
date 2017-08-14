@@ -7,6 +7,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,7 +35,7 @@ public class SweepView extends ViewGroup implements OnClickListener {
     /**
      * 默认10个地雷
      */
-    private final int DEFAULT_MINES = 10;
+    private final int DEFAULT_MINES = 1;
 
     /**
      * 地雷的个数
@@ -84,11 +85,17 @@ public class SweepView extends ViewGroup implements OnClickListener {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         setMeasuredDimension(screenWidth, screenWidth);
         //
+//        for (int i = 0; i < getChildCount(); i++) {
+//            if (getChildAt(i) instanceof FrameLayout) {
+//                getChildAt(i).measure(widthMeasureSpec, heightMeasureSpec);
+//            }
+//        }
+
     }
 
     private void randomMine() {
         int maxMu = lines * rows;
-        while (mineList.size() < 15) {
+        while (mineList.size() < 10) {
             mineList.add(random.nextInt(maxMu));
         }
         Log.i("mine count", mineList.size() + "");
@@ -99,29 +106,30 @@ public class SweepView extends ViewGroup implements OnClickListener {
         for (int i = 0; i < lines; i++) {
             for (int j = 0; j < rows; j++) {
                 SweepBean sweepBean = new SweepBean();
-                TextView textView = new TextView(getContext());
-                textView.setGravity(Gravity.CENTER);
-                textView.setOnClickListener(this);
+                ItemView sweepItemView = new ItemView(getContext());
+                sweepItemView.setOnClickListener(this);
+                sweepItemView.setViewWidth(squareWidth);
+
                 int left = j * squareWidth + ((j + 1) - 1) * squareMagin;
                 int top = i * squareWidth + ((i + 1) - 1) * squareMagin;
                 int right = left + squareWidth;
                 int bottom = top + squareWidth;
-                textView.setLeft(left);
-                textView.setTop(top);
-                textView.setRight(right);
-                textView.setBottom(bottom);
-                textView.setBackgroundResource(R.color.colorAccent);
-                textView.setLayoutParams(layoutParams);
+                sweepItemView.setLeft(left);
+                sweepItemView.setTop(top);
+                sweepItemView.setRight(right);
+                sweepItemView.setBottom(bottom);
+                sweepItemView.setLayoutParams(layoutParams);
                 //设置tag，方便点击时取值
-                textView.setTag(i + "&" + j);
-                sweepBean.setTextView(textView);
+                sweepItemView.setTag(i + "&" + j);
+                sweepBean.setItemView(sweepItemView);
                 if (mineList.contains(i * rows + j)) {
-                    textView.setText("雷");
+                    sweepItemView.setMine();
                     sweepBean.setType(SweepBean.TYPE_MINE);
                 } else {
                     sweepBean.setType(SweepBean.TYPE_EMPTY);
                 }
-                addView(textView);
+                sweepItemView.setViewWidth(squareWidth);
+                addView(sweepItemView);
                 sweepBeens[i][j] = sweepBean;
             }
         }
@@ -151,7 +159,8 @@ public class SweepView extends ViewGroup implements OnClickListener {
         bean.setValue(count);
         if (count > 0) {
             bean.setType(SweepBean.TYPE_NUMBER);
-            bean.getTextView().setText(count + "");
+            bean.getItemView().setNumber(count);
+            bean.getItemView().setNumber(count);
         }
     }
 
@@ -177,16 +186,15 @@ public class SweepView extends ViewGroup implements OnClickListener {
         for (int i = 0; i < lines; i++) {
             for (int j = 0; j < rows; j++) {
                 SweepBean sweepBean = sweepBeens[i][j];
-                TextView textView = sweepBean.getTextView();
-                textView.layout(textView.getLeft(), textView.getTop(), textView.getRight(), textView.getBottom());
+                ItemView sweepItemView = sweepBean.getItemView();
+                sweepItemView.layout(sweepItemView.getLeft(), sweepItemView.getTop(), sweepItemView.getRight(), sweepItemView.getBottom());
             }
         }
     }
 
     @Override
     public void onClick(View v) {
-        if (v instanceof TextView) {
-            TextView textView = (TextView) v;
+        if (v instanceof ItemView) {
             String tag = (String) v.getTag();
             String[] split = tag.split("&");
             int lines = Integer.parseInt(split[0]);
@@ -195,15 +203,271 @@ public class SweepView extends ViewGroup implements OnClickListener {
             if (sweepBean != null) {
                 if (sweepBean.getType() == SweepBean.TYPE_MINE) {
                     Toast.makeText(getContext(), "你点中了雷", Toast.LENGTH_SHORT).show();
+                    //游戏结束
+                    lightAllBoom();
+
                 } else if (sweepBean.getType() == SweepBean.TYPE_EMPTY) {
                     Toast.makeText(getContext(), "你点中了空格", Toast.LENGTH_SHORT).show();
-
-
+                    clickLeft(lines, rows - 1);
+                    clickRight(lines, rows + 1);
+                    clickBottom(lines + 1, rows);
+                    clickTop(lines, rows);
                 } else {
                     Toast.makeText(getContext(), "你点中了" + sweepBean.getValue(), Toast.LENGTH_SHORT).show();
+                    sweepBean.getItemView().setOpen(true);
                 }
             }
 
         }
+    }
+
+    /**
+     * 点燃所有的雷
+     */
+    private void lightAllBoom() {
+        for (int i = 0; i < lines; i++) {
+            for (int j = 0; j < rows; j++) {
+                SweepBean sweepbean = sweepBeens[i][j];
+                //去掉所有的点击事件
+                sweepbean.getItemView().setOnClickListener(null);
+                if (sweepbean.getItemView().getType() == SweepBean.TYPE_MINE) {
+                    sweepbean.getItemView().setOpen(true);
+                }
+            }
+        }
+    }
+
+    private void checkEmpty(int line, int row) {
+        SweepBean bottomBean = null;
+        try {
+            bottomBean = sweepBeens[line][row];
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (bottomBean != null) {
+            if (bottomBean.getType() == SweepBean.TYPE_EMPTY) {
+                //打开这个方块
+                if (!bottomBean.isOpen) {
+                    bottomBean.isOpen = true;
+                    bottomBean.getItemView().setOpen(true);
+                    checkEmpty(line, row - 1);
+                    checkEmpty(line, row + 1);
+                    checkEmpty(line - 1, row);
+//                    bottomBean.getTextView().setText("kai");
+
+                    //算对角线
+                    checkDuijiaoxian(line - 1, row - 1);
+                    checkDuijiaoxian(line - 1, row + 1);
+                    checkDuijiaoxian(line + 1, row + 1);
+                    checkDuijiaoxian(line + 1, row - 1);
+                }
+            } else if (bottomBean.getType() == SweepBean.TYPE_NUMBER) {
+                //打开这个方块
+                if (!bottomBean.isOpen) {
+                    bottomBean.isOpen = true;
+                    bottomBean.getItemView().setOpen(true);
+//                    bottomBean.getTextView().setText("kai");
+                }
+            }
+        }
+    }
+
+    private void checkDuijiaoxian(int line, int row) {
+        SweepBean bottomBean = null;
+        try {
+            bottomBean = sweepBeens[line][row];
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (bottomBean != null) {
+            if (bottomBean.getType() == SweepBean.TYPE_EMPTY) {
+                if (!bottomBean.isOpen) {
+                    bottomBean.isOpen = true;
+                    bottomBean.getItemView().setOpen(true);
+//                    bottomBean.getTextView().setText("kai");
+//                clickTop(line - 1, row);
+
+                    //算对角线
+
+                }
+            } else if (bottomBean.getType() == SweepBean.TYPE_NUMBER) {
+                //打开这个方块
+                if (!bottomBean.isOpen) {
+                    bottomBean.isOpen = true;
+                    bottomBean.getItemView().setOpen(true);
+//                    bottomBean.getTextView().setText("kai");
+                }
+//                    break;
+            }
+        }
+    }
+
+    private void clickTop(int line, int row) {
+        SweepBean bottomBean = null;
+//        for (int i = line-1; i < line; i--) {
+        try {
+            bottomBean = sweepBeens[line][row];
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (bottomBean != null) {
+            if (bottomBean.getType() == SweepBean.TYPE_EMPTY) {
+                //打开这个方块
+//                if (!bottomBean.isOpen) {
+//                    bottomBean.isOpen = true;
+                clickLeft(line, row - 1);
+                clickRight(line, row + 1);
+                bottomBean.getItemView().setOpen(true);
+//                bottomBean.getTextView().setText("kai");
+                clickTop(line - 1, row);
+
+                //算对角线
+                checkDuijiaoxian(line - 1, row - 1);
+                checkDuijiaoxian(line - 1, row + 1);
+                checkDuijiaoxian(line + 1, row + 1);
+                checkDuijiaoxian(line + 1, row - 1);
+//                }
+            } else if (bottomBean.getType() == SweepBean.TYPE_NUMBER) {
+                //打开这个方块
+//                if (!bottomBean.isOpen) {
+                bottomBean.isOpen = true;
+                bottomBean.getItemView().setOpen(true);
+//                bottomBean.getTextView().setText("kai");
+//                }
+//                    break;
+            }
+        }
+//            } else {
+//                break;
+//            }
+
+    }
+
+    private void clickRight(int line, int row) {
+        SweepBean bottomBean = null;
+//        for (int i = 0; i < rows-row; i++) {
+        try {
+            bottomBean = sweepBeens[line][row];
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (bottomBean != null) {
+            if (bottomBean.getType() == SweepBean.TYPE_EMPTY) {
+                //打开这个方块
+                if (!bottomBean.isOpen) {
+                    bottomBean.isOpen = true;
+                    clickTop(line - 1, row);
+                    bottomBean.getItemView().setOpen(true);
+                    clickBottom(line + 1, row);
+//                    bottomBean.getTextView().setText("kai");
+                    clickRight(line, row + 1);
+
+                    //算对角线
+                    checkDuijiaoxian(line - 1, row - 1);
+                    checkDuijiaoxian(line - 1, row + 1);
+                    checkDuijiaoxian(line + 1, row + 1);
+                    checkDuijiaoxian(line + 1, row - 1);
+                }
+            } else if (bottomBean.getType() == SweepBean.TYPE_NUMBER) {
+                //打开这个方块
+                if (!bottomBean.isOpen) {
+                    bottomBean.getItemView().setOpen(true);
+                    bottomBean.isOpen = true;
+//                    bottomBean.getTextView().setText("kai");
+
+                }
+            }
+        }
+//            else {
+//                break;
+//            }
+
+//        }
+    }
+
+    private void clickLeft(int line, int row) {
+        SweepBean bottomBean = null;
+//        for (int i = row-1; i < row; i++) {
+        try {
+            bottomBean = sweepBeens[line][row];
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (bottomBean != null) {
+            if (bottomBean.getType() == SweepBean.TYPE_EMPTY) {
+                //打开这个方块
+                if (!bottomBean.isOpen) {
+                    bottomBean.isOpen = true;
+                    bottomBean.getItemView().setOpen(true);
+                    clickTop(line - 1, row);
+//                    bottomBean.getTextView().setText("kai");
+                    clickLeft(line, row - 1);
+                    clickBottom(line + 1, row);
+
+                    //算对角线
+                    checkDuijiaoxian(line - 1, row - 1);
+                    checkDuijiaoxian(line - 1, row + 1);
+                    checkDuijiaoxian(line + 1, row + 1);
+                    checkDuijiaoxian(line + 1, row - 1);
+                }
+            } else if (bottomBean.getType() == SweepBean.TYPE_NUMBER) {
+                //打开这个方块
+                if (!bottomBean.isOpen) {
+                    bottomBean.getItemView().setOpen(true);
+                    bottomBean.isOpen = true;
+//                    bottomBean.getTextView().setText("kai");
+                }
+//                break;
+            }
+        }
+//            else {
+//                break;
+//            }
+
+//        }
+    }
+
+
+    private void clickBottom(int line, int row) {
+
+        SweepBean bottomBean = null;
+//        for (int i = 0; i < lines - i; i++) {
+        try {
+            bottomBean = sweepBeens[line][row];
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (bottomBean != null) {
+            if (bottomBean.getType() == SweepBean.TYPE_EMPTY) {
+                //打开这个方块
+                if (!bottomBean.isOpen) {
+                    bottomBean.getItemView().setOpen(true);
+                    bottomBean.isOpen = true;
+                    clickRight(line, row + 1);
+                    clickBottom(line + 1, row);
+                    clickLeft(line, row - 1);
+//                    bottomBean.getTextView().setText("kai");
+
+                    //算对角线
+                    checkDuijiaoxian(line - 1, row - 1);
+                    checkDuijiaoxian(line - 1, row + 1);
+                    checkDuijiaoxian(line + 1, row + 1);
+                    checkDuijiaoxian(line + 1, row - 1);
+                }
+            } else if (bottomBean.getType() == SweepBean.TYPE_NUMBER) {
+                //打开这个方块
+                if (!bottomBean.isOpen) {
+                    bottomBean.isOpen = true;
+                    bottomBean.getItemView().setOpen(true);
+//                    bottomBean.getTextView().setText("kai");
+                }
+//                break;
+            }
+        }
+//            else {
+//                break;
+//            }
+
+//        }
     }
 }
