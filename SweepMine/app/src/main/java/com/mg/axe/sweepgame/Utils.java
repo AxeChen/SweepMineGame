@@ -55,16 +55,6 @@ public class Utils {
         }
     }
 
-    public static int getMinLength(int... params) {
-        int min = params[0];
-        for (int para : params) {
-            if (para < min) {
-                min = para;
-            }
-        }
-        return min;
-    }
-
     //dp px
     public static int dp2px(Context context, int dpval) {
         context = context.getApplicationContext();

@@ -84,13 +84,6 @@ public class SweepView extends ViewGroup implements OnClickListener {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         setMeasuredDimension(screenWidth, screenWidth);
-        //
-//        for (int i = 0; i < getChildCount(); i++) {
-//            if (getChildAt(i) instanceof FrameLayout) {
-//                getChildAt(i).measure(widthMeasureSpec, heightMeasureSpec);
-//            }
-//        }
-
     }
 
     private void randomMine() {
@@ -208,10 +201,32 @@ public class SweepView extends ViewGroup implements OnClickListener {
 
                 } else if (sweepBean.getType() == SweepBean.TYPE_EMPTY) {
                     Toast.makeText(getContext(), "你点中了空格", Toast.LENGTH_SHORT).show();
-                    clickLeft(lines, rows - 1);
-                    clickRight(lines, rows + 1);
-                    clickBottom(lines + 1, rows);
-                    clickTop(lines, rows);
+                    sweepBean.getItemView().setOpen(true);
+
+                    SweepBean checkBean = checkEmpty(lines, rows - 1);
+                    if (checkBean != null) {
+                        if (checkBean.getType() == SweepBean.TYPE_EMPTY) {
+                            if (!checkBean.isOpen) {
+                                checkBean.isOpen = true;
+                                checkBean.getItemView().setOpen(true);
+                            }
+                        } else if (checkBean.getType() == SweepBean.TYPE_NUMBER) {
+                            if (!checkBean.isOpen) {
+                                checkBean.isOpen = true;
+                                checkBean.getItemView().setOpen(true);
+                            }
+                        }
+                    }
+//                    checkEmpty(lines, rows + 1);
+//                    checkEmpty(lines + 1, rows);
+//                    checkEmpty(lines - 1, rows);
+//
+//                    //算对角线
+//                    checkEmpty(lines - 1, rows - 1);
+//                    checkEmpty(lines - 1, rows + 1);
+//                    checkEmpty(lines + 1, rows + 1);
+//                    checkEmpty(lines + 1, rows - 1);
+
                 } else {
                     Toast.makeText(getContext(), "你点中了" + sweepBean.getValue(), Toast.LENGTH_SHORT).show();
                     sweepBean.getItemView().setOpen(true);
@@ -219,6 +234,25 @@ public class SweepView extends ViewGroup implements OnClickListener {
             }
 
         }
+    }
+
+    /**
+     * 检查空格
+     *
+     * @param lines
+     * @param rows
+     */
+    private SweepBean checkEmpty(int lines, int rows) {
+        SweepBean bottomBean = null;
+        try {
+            bottomBean = sweepBeens[lines][rows];
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return bottomBean;
+
+
     }
 
     /**
@@ -237,41 +271,6 @@ public class SweepView extends ViewGroup implements OnClickListener {
         }
     }
 
-    private void checkEmpty(int line, int row) {
-        SweepBean bottomBean = null;
-        try {
-            bottomBean = sweepBeens[line][row];
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (bottomBean != null) {
-            if (bottomBean.getType() == SweepBean.TYPE_EMPTY) {
-                //打开这个方块
-                if (!bottomBean.isOpen) {
-                    bottomBean.isOpen = true;
-                    bottomBean.getItemView().setOpen(true);
-                    checkEmpty(line, row - 1);
-                    checkEmpty(line, row + 1);
-                    checkEmpty(line - 1, row);
-//                    bottomBean.getTextView().setText("kai");
-
-                    //算对角线
-                    checkDuijiaoxian(line - 1, row - 1);
-                    checkDuijiaoxian(line - 1, row + 1);
-                    checkDuijiaoxian(line + 1, row + 1);
-                    checkDuijiaoxian(line + 1, row - 1);
-                }
-            } else if (bottomBean.getType() == SweepBean.TYPE_NUMBER) {
-                //打开这个方块
-                if (!bottomBean.isOpen) {
-                    bottomBean.isOpen = true;
-                    bottomBean.getItemView().setOpen(true);
-//                    bottomBean.getTextView().setText("kai");
-                }
-            }
-        }
-    }
-
     private void checkDuijiaoxian(int line, int row) {
         SweepBean bottomBean = null;
         try {
@@ -284,20 +283,13 @@ public class SweepView extends ViewGroup implements OnClickListener {
                 if (!bottomBean.isOpen) {
                     bottomBean.isOpen = true;
                     bottomBean.getItemView().setOpen(true);
-//                    bottomBean.getTextView().setText("kai");
-//                clickTop(line - 1, row);
-
-                    //算对角线
-
                 }
             } else if (bottomBean.getType() == SweepBean.TYPE_NUMBER) {
                 //打开这个方块
                 if (!bottomBean.isOpen) {
                     bottomBean.isOpen = true;
                     bottomBean.getItemView().setOpen(true);
-//                    bottomBean.getTextView().setText("kai");
                 }
-//                    break;
             }
         }
     }
@@ -313,12 +305,9 @@ public class SweepView extends ViewGroup implements OnClickListener {
         if (bottomBean != null) {
             if (bottomBean.getType() == SweepBean.TYPE_EMPTY) {
                 //打开这个方块
-//                if (!bottomBean.isOpen) {
-//                    bottomBean.isOpen = true;
                 clickLeft(line, row - 1);
                 clickRight(line, row + 1);
                 bottomBean.getItemView().setOpen(true);
-//                bottomBean.getTextView().setText("kai");
                 clickTop(line - 1, row);
 
                 //算对角线
@@ -326,20 +315,12 @@ public class SweepView extends ViewGroup implements OnClickListener {
                 checkDuijiaoxian(line - 1, row + 1);
                 checkDuijiaoxian(line + 1, row + 1);
                 checkDuijiaoxian(line + 1, row - 1);
-//                }
             } else if (bottomBean.getType() == SweepBean.TYPE_NUMBER) {
                 //打开这个方块
-//                if (!bottomBean.isOpen) {
                 bottomBean.isOpen = true;
                 bottomBean.getItemView().setOpen(true);
-//                bottomBean.getTextView().setText("kai");
-//                }
-//                    break;
             }
         }
-//            } else {
-//                break;
-//            }
 
     }
 

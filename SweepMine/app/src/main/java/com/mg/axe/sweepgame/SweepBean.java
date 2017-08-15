@@ -31,8 +31,6 @@ public class SweepBean {
 
     private ItemView itemView;
 
-
-
     public ItemView getItemView() {
         return itemView;
     }

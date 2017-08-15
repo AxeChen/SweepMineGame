@@ -9,7 +9,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringDef;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -101,39 +100,13 @@ public class ItemView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
         if (type == ITEM_TYPE_EMPTY) {
             if (bitmap == null) {
                 bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.empty);
             }
             canvas.drawBitmap(bitmap, null, rectF, paint);
         } else if (type == ITEM_TYPE_NUMBER) {
-            switch (number) {
-                case 1:
-                    paint.setColor(Color.WHITE);
-                    break;
-                case 2:
-                    paint.setColor(Color.GREEN);
-                    break;
-                case 3:
-                    paint.setColor(Color.BLUE);
-                    break;
-                case 4:
-                    paint.setColor(Color.parseColor("#DDCEED"));
-                    break;
-                case 5:
-                    paint.setColor(Color.parseColor("#DDCEED"));
-                    break;
-                case 6:
-                    paint.setColor(Color.parseColor("#CDC7F5"));
-                    break;
-                case 7:
-                    paint.setColor(Color.parseColor("#F9DEC3"));
-                    break;
-                case 8:
-                    paint.setColor(Color.RED);
-                    break;
-            }
+            setPaintColor();
             String numberStr = String.valueOf(number);
             paint.getTextBounds(numberStr, 0, numberStr.length(), mTextRect);
             canvas.drawText(numberStr, viewWidth / 2 - mTextRect.width() / 2,
@@ -144,9 +117,38 @@ public class ItemView extends View {
             }
             canvas.drawBitmap(bitmap, null, rectF, paint);
         }
-        if (!isOpen) {
-            paint.setColor(Color.WHITE);
-            canvas.drawRect(rectF, paint);
+//        if (!isOpen) {
+//            paint.setColor(Color.WHITE);
+//            canvas.drawRect(rectF, paint);
+//        }
+    }
+
+    private void setPaintColor() {
+        switch (number) {
+            case 1:
+                paint.setColor(Color.BLACK);
+                break;
+            case 2:
+                paint.setColor(Color.GREEN);
+                break;
+            case 3:
+                paint.setColor(Color.BLUE);
+                break;
+            case 4:
+                paint.setColor(Color.parseColor("#DDCEED"));
+                break;
+            case 5:
+                paint.setColor(Color.parseColor("#DDCEED"));
+                break;
+            case 6:
+                paint.setColor(Color.parseColor("#CDC7F5"));
+                break;
+            case 7:
+                paint.setColor(Color.parseColor("#F9DEC3"));
+                break;
+            case 8:
+                paint.setColor(Color.RED);
+                break;
         }
     }
 }
